@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import AdminNavBar from "./AdminNavBar";
 import QuestionForm from "./QuestionForm";
 import QuestionList from "./QuestionList";
@@ -14,7 +14,7 @@ function App() {
       .then((data) => {
         setQuestionData(data);
         setIsLoaded(true);
-      })
+      });
   }, []);
 
   function returnNewQuestion(question) {
@@ -22,41 +22,57 @@ function App() {
   }
 
   function deleteQuestion(delId) {
-    setQuestionData(questionData.filter((question) => {
-      return question.id !== delId;
-    }))
     fetch(`http://localhost:4000/questions/${delId}`, {
-    method: "DELETE",
+      method: "DELETE",
     })
+      .then((resp) => resp.json())
+      .then(() => {
+        setQuestionData(
+          questionData.filter((question) => {
+            return question.id !== delId;
+          })
+        );
+      });
   }
 
   function changeCorrectAnswer(changeId, newIndex) {
     const updatedQuestion = questionData.filter((question) => {
       return question.id === changeId;
-    })
+    });
     updatedQuestion.correctIndex = newIndex;
-    setQuestionData(questionData.filter((question) => {
-      if (question.id === changeId) {
-        return updatedQuestion;
-      } else {
-        return question
-      }
-    }));
+    setQuestionData(
+      questionData.filter((question) => {
+        if (question.id === changeId) {
+          return updatedQuestion;
+        } else {
+          return question;
+        }
+      })
+    );
     fetch(`http://localhost:4000/questions/${changeId}`, {
       method: "PATCH",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify ({
+      body: JSON.stringify({
         correctIndex: newIndex,
       }),
-    })
+    });
   }
 
   return (
     <main>
       <AdminNavBar onChangePage={setPage} />
-      {page === "Form" ? <QuestionForm newQuestion={returnNewQuestion}/> : <QuestionList questionData={questionData} isLoaded={isLoaded} deleteQuestion={deleteQuestion} changeCorrectAnswer={changeCorrectAnswer}/>}
+      {page === "Form" ? (
+        <QuestionForm newQuestion={returnNewQuestion} />
+      ) : (
+        <QuestionList
+          questionData={questionData}
+          isLoaded={isLoaded}
+          deleteQuestion={deleteQuestion}
+          changeCorrectAnswer={changeCorrectAnswer}
+        />
+      )}
     </main>
   );
 }
